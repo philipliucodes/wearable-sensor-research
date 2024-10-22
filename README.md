@@ -1,6 +1,4 @@
-# Project Title
-
-**Wearable Sensor Research**  
+# **Wearable Sensor Research**  
 _January 2024 - Present_
 
 ## Description
