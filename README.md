@@ -1,74 +1,96 @@
-# Project Title
+# Wearable Sensor Research
 
-Wearable Sensor Research
-
-January 2024 - Present
+**Audio Analyzer and Splicer**  
+_January 2024 - Present_
 
 ## Description
 
-An in-depth paragraph about your project and overview of use.
+This project focuses on processing and analyzing audio and video data collected from wearable sensors. It involves generating transcripts from media files and extracting video or audio clips for each word identified in the transcripts. The provided tools and scripts support research in **wearable technology** and **human-computer interaction**.
+
+---
 
 ## Getting Started
 
 ### Dependencies
 
-- Describe any prerequisites, libraries, OS version, etc., needed before installing program.
-- ex. Windows 10
+- **Operating System:** Windows 10, macOS, or Linux
+- **Conda:** Required for managing the Python environment
+- **Python Version:** Python 3.9 (managed via Conda)
+- **FFmpeg:** Must be installed and accessible via Conda
 
+---
+
+## Installation
+
+### 1. Install Conda
+
+Download and install Anaconda or Miniconda:
+
+- [Anaconda Distribution](https://www.anaconda.com/products/distribution)
+- [Miniconda Installer](https://docs.conda.io/en/latest/miniconda.html)
+
+### 2. Create a Conda Environment
+
+Open your terminal or command prompt and create a new Conda environment:
+
+```bash
+conda create -n whisper_env python=3.9
 ```
-pip install torch
-pip install numpy
-pip install ffmpeg-python
+
+Activate the environment:
+
+```bash
+conda activate whisper_env
+```
+
+### 3. Install PyTorch
+
+Install PyTorch in the Conda environment:
+
+```bash
+conda install pytorch torchvision torchaudio cpuonly -c pytorch
+```
+
+### 4. Install Whisper Timestamped
+
+Install the `whisper-timestamped` package from GitHub:
+
+```bash
 pip install git+https://github.com/linto-ai/whisper-timestamped
 ```
 
-### Installing
+### 5. Install FFmpeg
 
-- How/where to download your program
-- Any modifications needed to be made to files/folders
+Install FFmpeg via Conda:
 
-### Executing program
-
-- How to run the program
-- Step-by-step bullets
-
-```
-code blocks for commands
+```bash
+conda install -c conda-forge ffmpeg
 ```
 
-## Help
+### 6. Install Additional Dependencies
 
-Any advise for common problems or issues.
+Run the following commands to install additional packages:
 
+```bash
+pip install numpy
+pip install ffmpeg-python
+pip install moviepy
 ```
-command to run if program contains helper info
+
+---
+
+## Usage
+
+After setting up the environment, activate the `whisper_env` environment before running your scripts:
+
+```bash
+conda activate whisper_env
 ```
 
-## Authors
+You can then use the scripts to generate transcripts and extract word-level clips from your audio or video files.
 
-Contributors names and contact info
+---
 
-ex. Dominique Pizzie  
-ex. [@DomPizzie](https://twitter.com/dompizzie)
+## Conclusion
 
-## Version History
-
-- 0.2
-  - Various bug fixes and optimizations
-  - See [commit change]() or See [release history]()
-- 0.1
-  - Initial Release
-
-## License
-
-This project is licensed under the [NAME HERE] License - see the LICENSE.md file for details
-
-## Acknowledgments
-
-Inspiration, code snippets, etc.
-
-- [awesome-readme](https://github.com/matiassingers/awesome-readme)
-- [PurpleBooth](https://gist.github.com/PurpleBooth/109311bb0361f32d87a2)
-- [dbader](https://github.com/dbader/readme-template)
-- [zenorocha](https://gist.github.com/zenorocha/4526327)
-- [fvcproductions](https://gist.github.com/fvcproductions/1bfc2d4aecb01a834b46)
+This project enables advanced analysis of wearable sensor data through speech transcription and media processing. Make sure to keep your Conda environment activated when working on related scripts to ensure all dependencies are properly loaded.

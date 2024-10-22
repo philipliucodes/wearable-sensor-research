@@ -1,90 +1,53 @@
 import os
 import json
-from moviepy.editor import VideoFileClip
-from moviepy.audio.io.AudioFileClip import AudioFileClip
+import whisper_timestamped as whisper
 
-# Set the directories
-transcripts_directory = "../output/transcripts/0531-new healthy"  # Directory containing your transcript JSON files
-media_directory = "../data/0531-new healthy"  # Directory containing your original video/audio files
-output_directory = "../output/clips"  # Directory where the clips will be saved
+# Function to adjust start and end times (optional, kept for consistency)
+def adjust_start_time(start_time):
+    return int(start_time) - 0.2
+
+def adjust_end_time(end_time):
+    return int(end_time) + 0.75
+
+# Specify the input directory containing your videos
+input_directory = "../data/0531-new healthy"
+
+# Specify the output directory for the transcripts
+output_directory = "../output/transcripts/0531-new healthy"
 os.makedirs(output_directory, exist_ok=True)
 
-# List of supported media file extensions
+# List of supported video/audio file extensions
 supported_extensions = ('.mp4', '.mp3', '.wav', '.m4a')
 
-# Get a list of all transcript files
-transcript_files = [
-    f for f in os.listdir(transcripts_directory)
-    if f.lower().endswith('_transcript.json')
+# Get a list of all video/audio files in the input directory
+video_files = [
+    f for f in os.listdir(input_directory)
+    if f.lower().endswith(supported_extensions)
 ]
 
-# Process each transcript file
-for transcript_file in transcript_files:
-    transcript_path = os.path.join(transcripts_directory, transcript_file)
-    media_filename = transcript_file.replace('_transcript.json', '')
-    
-    # Find the corresponding media file
-    media_file = None
-    for ext in supported_extensions:
-        possible_media_path = os.path.join(media_directory, media_filename + ext)
-        if os.path.isfile(possible_media_path):
-            media_file = possible_media_path
-            break
-    
-    if media_file is None:
-        print(f"No corresponding media file found for {transcript_file}")
-        continue  # Skip to the next transcript if no media file is found
-    
-    print(f"Processing transcript: {transcript_path}")
-    print(f"Corresponding media file: {media_file}")
-    
-    # Load the transcript data
-    with open(transcript_path, 'r') as json_file:
-        data = json.load(json_file)
-    
-    # Process each word in the transcript
-    words = []
-    if 'words' in data:
-        # For newer versions of whisper_timestamped that include 'words' at the top level
-        words = data['words']
-    else:
-        # For older versions, need to extract words from segments
-        for segment in data.get('segments', []):
-            words.extend(segment.get('words', []))
-    
-    for idx, word_info in enumerate(words):
-        word_text = word_info['text'].strip()
-        start_time = word_info['start']
-        end_time = word_info['end']
-        
-        # Construct a unique output filename
-        output_filename = f"{media_filename}_word_{idx}_{word_text.replace(' ', '_')}.mp4"  # Default to .mp4
-        output_path = os.path.join(output_directory, output_filename)
-        
-        try:
-            if media_file.lower().endswith(('.mp4', '.mov', '.avi', '.mkv')):
-                # For video files
-                video = VideoFileClip(media_file)
-                video_clip = video.subclip(start_time, end_time)
-                video_clip.write_videofile(output_path, codec='libx264', audio_codec='aac')
-                print(f"Video clip saved at {output_path}")
-                video_clip.close()
-                video.close()
-            elif media_file.lower().endswith(('.mp3', '.wav', '.m4a', '.aac', '.flac')):
-                # For audio files
-                audio = AudioFileClip(media_file)
-                audio_clip = audio.subclip(start_time, end_time)
-                # Change the output extension to .mp3
-                output_filename = f"{media_filename}_word_{idx}_{word_text.replace(' ', '_')}.mp3"
-                output_path = os.path.join(output_directory, output_filename)
-                audio_clip.write_audiofile(output_path)
-                print(f"Audio clip saved at {output_path}")
-                audio_clip.close()
-                audio.close()
-            else:
-                print(f"Unsupported media file format: {media_file}")
-        except Exception as e:
-            print(f"Error processing word '{word_text}' in {media_file}: {e}")
-            continue  # Skip to the next word
+# Load the Whisper model once before processing
+model = whisper.load_model("tiny", device="cpu")
 
-print("All clips generated successfully!")
+# Process each video file
+for video_file in video_files:
+    input_path = os.path.join(input_directory, video_file)
+    print(f"Processing {input_path}")
+    
+    try:
+        # Load the audio from the video file
+        audio = whisper.load_audio(input_path)
+        
+        # Transcribe the audio
+        result = whisper.transcribe(model, audio, language="en")
+        
+        # Save the transcript to a JSON file
+        transcript_filename = f"{os.path.splitext(video_file)[0]}_transcript.json"
+        transcript_output_path = os.path.join(output_directory, transcript_filename)
+        with open(transcript_output_path, 'w') as json_file:
+            json.dump(result, json_file, indent=2, ensure_ascii=False)
+        
+        print(f"Transcript saved at {transcript_output_path}")
+    except Exception as e:
+        print(f"An error occurred while processing {video_file}: {e}")
+
+print("All transcripts generated successfully!")
