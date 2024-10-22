@@ -6,69 +6,68 @@ January 2024 - Present
 
 ## Description
 
-An in-depth paragraph about your project and overview of use.
+This project focuses on processing and analyzing audio and video data from wearable sensors. It involves generating transcripts for media files and extracting clips for every word identified in the transcripts. The tools and scripts provided facilitate research in wearable technology and human-computer interaction.
 
 ## Getting Started
 
 ### Dependencies
 
-- Describe any prerequisites, libraries, OS version, etc., needed before installing program.
-- ex. Windows 10
-
-```
-pip install torch
-pip install numpy
-pip install ffmpeg-python
-pip install git+https://github.com/linto-ai/whisper-timestamped
-```
+- Operating System: Windows 10, macOS, or Linux
+- Conda: Required for managing the Python environment
+- Python Version: Python 3.9 (managed via Conda)
+- FFmpeg: Must be installed and accessible via Conda
 
 ### Installing
 
-- How/where to download your program
-- Any modifications needed to be made to files/folders
+1. Install Conda
 
-### Executing program
+Download and install Anaconda or Miniconda:
 
-- How to run the program
-- Step-by-step bullets
+- Anaconda Download
+- Miniconda Download
 
-```
-code blocks for commands
-```
+2. Create a Conda Environment
 
-## Help
-
-Any advise for common problems or issues.
+Open your terminal or command prompt and create a new Conda environment:
 
 ```
-command to run if program contains helper info
+conda create -n whisper_env python=3.9
 ```
 
-## Authors
+Activate the environment:
 
-Contributors names and contact info
+```
+conda activate whisper_env
+```
 
-ex. Dominique Pizzie  
-ex. [@DomPizzie](https://twitter.com/dompizzie)
+3. Install PyTorch
 
-## Version History
+Install PyTorch in the Conda environment:
 
-- 0.2
-  - Various bug fixes and optimizations
-  - See [commit change]() or See [release history]()
-- 0.1
-  - Initial Release
+```
+conda install pytorch torchvision torchaudio cpuonly -c pytorch
+```
 
-## License
+4. Install Whisper Timestamped
 
-This project is licensed under the [NAME HERE] License - see the LICENSE.md file for details
+Install the whisper-timestamped package from GitHub:
 
-## Acknowledgments
+```
+pip install git+https://github.com/linto-ai/whisper-timestamped
+```
 
-Inspiration, code snippets, etc.
+5. Install FFmpeg
 
-- [awesome-readme](https://github.com/matiassingers/awesome-readme)
-- [PurpleBooth](https://gist.github.com/PurpleBooth/109311bb0361f32d87a2)
-- [dbader](https://github.com/dbader/readme-template)
-- [zenorocha](https://gist.github.com/zenorocha/4526327)
-- [fvcproductions](https://gist.github.com/fvcproductions/1bfc2d4aecb01a834b46)
+Install FFmpeg via Conda:
+
+```
+conda install -c conda-forge ffmpeg
+```
+
+6. Install Additional Dependencies
+
+```
+pip install numpy
+pip install ffmpeg-python
+pip install moviepy
+```
