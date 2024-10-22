@@ -10,10 +10,10 @@ def adjust_end_time(end_time):
     return int(end_time) + 0.75
 
 # Specify the input directory containing your videos
-input_directory = "../data/9:24 Manual Splicing/AphasiaLab-week0527/0527weekData-new healthy"
+input_directory = "../data/0531-new healthy"
 
 # Specify the output directory for the transcripts
-output_directory = "../output/transcripts"
+output_directory = "../output/transcripts/0531-new healthy"
 os.makedirs(output_directory, exist_ok=True)
 
 # List of supported video/audio file extensions
@@ -49,3 +49,5 @@ for video_file in video_files:
         print(f"Transcript saved at {transcript_output_path}")
     except Exception as e:
         print(f"An error occurred while processing {video_file}: {e}")
+
+print("All transcripts generated successfully!")
