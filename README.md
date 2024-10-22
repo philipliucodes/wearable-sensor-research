@@ -1,6 +1,6 @@
-# Wearble Sensor Research 
+# Project Title
 
-**Audio Analyzer and Splicer**
+**Wearable Sensor Research**  
 _January 2024 - Present_
 
 ## Description
