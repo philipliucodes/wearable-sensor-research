@@ -1,0 +1,39 @@
+# Ignore data and output directories
+data/
+output/
+
+# Ignore Python cache files
+__pycache__/
+*.py[cod]
+
+# Ignore logs and temporary files
+*.log
+*.tmp
+*.bak
+
+# Ignore environment and dependency files
+.env
+venv/
+.envrc
+
+# Ignore MacOS and system-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore Jupyter Notebook checkpoints (if applicable)
+.ipynb_checkpoints/
+
+# Ignore compiled files
+*.o
+*.out
+*.exe
+
+# Ignore archives and compressed files
+*.zip
+*.tar.gz
+*.rar
+
+# Ignore editor-specific files
+.vscode/
+.idea/
+*.swp
