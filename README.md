@@ -19,54 +19,50 @@ This project focuses on processing and analyzing audio and video data from weara
 
 ### Installing
 
-1. Install Conda
-
+## 1. Install Conda  
 Download and install Anaconda or Miniconda:
 
-- Anaconda Download
-- Miniconda Download
+- [Anaconda Distribution](https://www.anaconda.com/products/distribution)  
+- [Miniconda Installer](https://docs.conda.io/en/latest/miniconda.html)
 
-2. Create a Conda Environment
-
+## 2. Create a Conda Environment  
 Open your terminal or command prompt and create a new Conda environment:
 
-```
+```bash
 conda create -n whisper_env python=3.9
 ```
 
 Activate the environment:
 
-```
+```bash
 conda activate whisper_env
 ```
 
-3. Install PyTorch
-
+## 3. Install PyTorch  
 Install PyTorch in the Conda environment:
 
-```
+```bash
 conda install pytorch torchvision torchaudio cpuonly -c pytorch
 ```
 
-4. Install Whisper Timestamped
+## 4. Install Whisper Timestamped  
+Install the `whisper-timestamped` package from GitHub:
 
-Install the whisper-timestamped package from GitHub:
-
-```
+```bash
 pip install git+https://github.com/linto-ai/whisper-timestamped
 ```
 
-5. Install FFmpeg
-
+## 5. Install FFmpeg  
 Install FFmpeg via Conda:
 
-```
+```bash
 conda install -c conda-forge ffmpeg
 ```
 
-6. Install Additional Dependencies
+## 6. Install Additional Dependencies  
+Run the following commands to install additional required packages:
 
-```
+```bash
 pip install numpy
 pip install ffmpeg-python
 pip install moviepy
