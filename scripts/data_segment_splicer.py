@@ -16,14 +16,16 @@ def save_segment_to_csv(segment, output_folder, filename, segment_number):
     print(f"Segment {segment_number} saved to {output_file}")
 
 
-def process_data_file(filepath, timestamps, output_root, padding=0.1):
+def process_data_file(filepath, timestamps, output_root, padding_before=0.2, padding_after=0.2, offset=0.35):
     """
     Process a single .data file, cutting it into segments based on timestamps.
     Args:
         filepath (str): Path to the input .data file.
         timestamps (list): List of tuples with start and end times.
         output_root (str): Path to the output directory.
-        padding (float): Padding to add to the start and end of each segment in seconds.
+        padding_before (float): Padding to add before the start of each segment in seconds.
+        padding_after (float): Padding to add after the end of each segment in seconds.
+        offset (float): Offset to apply to all timestamps in seconds.
     """
     # Extract filename without extension
     filename = os.path.splitext(os.path.basename(filepath))[0]
@@ -59,8 +61,9 @@ def process_data_file(filepath, timestamps, output_root, padding=0.1):
     # Process each timestamp range
     segment_number = 0
     for start, end in timestamps:
-        start_time = max(0, start - padding)
-        end_time = end + padding
+        # Apply offset and padding
+        start_time = max(0, start + offset - padding_before)
+        end_time = end + offset + padding_after
 
         # Extract the segment
         segment = df[(df["Time"] >= start_time) & (df["Time"] <= end_time)]
@@ -70,14 +73,16 @@ def process_data_file(filepath, timestamps, output_root, padding=0.1):
             segment_number += 1
 
 
-def process_all_files(input_directory, timestamps_csv, output_directory, padding=0.1):
+def process_all_files(input_directory, timestamps_csv, output_directory, padding_before=0.2, padding_after=0.2, offset=0.35):
     """
     Process all .data files in a directory based on timestamps from a CSV file.
     Args:
         input_directory (str): Path to the directory containing .data files.
         timestamps_csv (str): Path to the CSV file with filenames and timestamp ranges.
         output_directory (str): Path to the directory for output CSV files.
-        padding (float): Padding to add to the start and end of each segment in seconds.
+        padding_before (float): Padding to add before the start of each segment in seconds.
+        padding_after (float): Padding to add after the end of each segment in seconds.
+        offset (float): Offset to apply to all timestamps in seconds.
     """
     # Load the timestamp data
     timestamp_data = pd.read_csv(timestamps_csv)
@@ -113,7 +118,7 @@ def process_all_files(input_directory, timestamps_csv, output_directory, padding
                         print(f"Invalid timestamp format: {entry}. Skipping.")
 
             # Process the file with the extracted timestamps
-            process_data_file(filepath, timestamp_ranges, output_directory, padding)
+            process_data_file(filepath, timestamp_ranges, output_directory, padding_before, padding_after, offset)
 
     print("All files processed.")
 
