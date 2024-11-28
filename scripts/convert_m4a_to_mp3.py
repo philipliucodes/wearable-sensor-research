@@ -27,9 +27,10 @@ def convert_m4a_to_mp3(input_dir, output_dir):
             except Exception as e:
                 print(f"Error converting {filename}: {e}")
 
-# Define input and output directories
-input_directory = "../data/audio_clips"  # Update with your .m4a files directory
-output_directory = "../data/audio_clips"  # Update with your desired output directory
-    
-# Run the conversion function
-convert_m4a_to_mp3(input_directory, output_directory)
+if __name__ == "__main__":
+    # Define input and output directories
+    input_directory = "../data/audio_clips"  # Update with your .m4a files directory
+    output_directory = "../data/audio_clips"  # Update with your desired output directory
+        
+    # Run the conversion function
+    convert_m4a_to_mp3(input_directory, output_directory)

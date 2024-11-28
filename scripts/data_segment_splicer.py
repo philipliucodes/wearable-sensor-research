@@ -11,7 +11,7 @@ def save_segment_to_csv(segment, output_folder, filename, segment_number):
         filename (str): Base filename (without extension).
         segment_number (int): Segment number.
     """
-    output_file = os.path.join(output_folder, f"{filename}_segment_{segment_number}.csv")
+    output_file = os.path.join(output_folder, f"{filename}_{segment_number}.csv")
     segment.to_csv(output_file, index=False)
     print(f"Segment {segment_number} saved to {output_file}")
 
@@ -123,10 +123,11 @@ def process_all_files(input_directory, timestamps_csv, output_directory, padding
     print("All files processed.")
 
 
-# Define input and output directories
-input_dir = "../data/data_segments"  # Directory containing your .data files
-timestamps_csv = "../data/timestamps.csv"  # CSV file with filenames and timestamp ranges
-output_dir = "../output/data_segments"  # Directory for output segments
+if __name__ == "__main__":
+    # Define input and output directories
+    input_dir = "../data/data_segments"  # Directory containing your .data files
+    timestamps_csv = "../data/timestamps.csv"  # CSV file with filenames and timestamp ranges
+    output_dir = "../output/data_segments"  # Directory for output segments
 
-# Process all .data files
-process_all_files(input_dir, timestamps_csv, output_dir)
+    # Process all .data files
+    process_all_files(input_dir, timestamps_csv, output_dir)

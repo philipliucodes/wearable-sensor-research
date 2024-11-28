@@ -64,10 +64,11 @@ def process_audio_clips(input_dir, output_dir, csv_file):
                 except ValueError:
                     print(f"Invalid timestamp format in column {col}: {row[col]}")
 
-# Define directories and CSV file
-input_directory = "../data/audio_clips"
-output_directory = "../output/audio_clips"
-csv_file = "../data/timestamps.csv"
+if __name__ == "__main__":
+    # Define directories and CSV file
+    input_directory = "../data/audio_clips"
+    output_directory = "../output/audio_clips"
+    csv_file = "../data/timestamps.csv"
 
-# Run the processing function
-process_audio_clips(input_directory, output_directory, csv_file)
+    # Run the processing function
+    process_audio_clips(input_directory, output_directory, csv_file)
