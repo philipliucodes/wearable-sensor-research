@@ -1,74 +1,112 @@
 import os
 import pandas as pd
-from PIL import Image
 
-def save_image_segment(image_segment, output_folder, filename, segment_number):
+def save_segment_to_csv(segment, output_folder, filename, segment_number):
     """
-    Save an image segment to the output folder.
+    Save a DataFrame segment to a CSV file.
     Args:
-        image_segment (PIL.Image): The image segment to save.
-        output_folder (str): Directory to save the segment.
-        filename (str): Original filename (without extension).
+        segment (pd.DataFrame): DataFrame containing the segment.
+        output_folder (str): Path to the output folder.
+        filename (str): Base filename (without extension).
         segment_number (int): Segment number.
     """
-    output_file = os.path.join(output_folder, f"{filename}_{segment_number}.bmp")
-    image_segment.save(output_file)
-    print(f"Saved segment: {output_file}")
+    output_file = os.path.join(output_folder, f"{filename}_segment_{segment_number}.csv")
+    segment.to_csv(output_file, index=False)
+    print(f"Segment {segment_number} saved to {output_file}")
 
-def process_bmp_files(directory, output_root, csv_file):
+
+def process_data_file(filepath, timestamp_data, output_root, padding=0.1):
     """
-    Process .bmp files in the directory based on timestamp ranges in the CSV file.
+    Process a single .data file, cutting it into segments based on timestamps.
     Args:
-        directory (str): Directory containing .bmp files.
-        output_root (str): Directory to save segmented images.
-        csv_file (str): Path to the CSV file with filenames and timestamp ranges.
+        filepath (str): Path to the input .data file.
+        timestamp_data (pd.DataFrame): DataFrame containing start and end timestamps.
+        output_root (str): Path to the output directory.
+        padding (float): Padding to add to the start and end of each segment in seconds.
     """
-    # Read the CSV file
-    data = pd.read_csv(csv_file)
-    if 'File' not in data.columns:
-        print("The CSV file must contain a 'File' column.")
+    # Extract filename without extension
+    filename = os.path.splitext(os.path.basename(filepath))[0]
+
+    with open(filepath, "r") as read_file:
+        # Skip header lines until "End_of_Header"
+        while True:
+            line = read_file.readline()
+            if "***End_of_Header***" in line:
+                break
+
+        # Read the data rows into a list
+        data = []
+        for line in read_file:
+            line = line.strip()
+            if not line:  # Skip empty lines
+                continue
+
+            line_split = line.split()
+            if len(line_split) != 2:  # Skip malformed lines
+                continue
+
+            try:
+                time = float(line_split[0])
+                current = float(line_split[1])
+                data.append([time, current])
+            except ValueError:
+                continue  # Skip lines with invalid numerical values
+
+    # Convert data to a DataFrame
+    df = pd.DataFrame(data, columns=["Time", "Current"])
+
+    # Filter the timestamps for the current file
+    if filename not in timestamp_data['File'].values:
+        print(f"No timestamps found for {filename}. Skipping.")
         return
 
-    # Ensure the output directory exists
-    os.makedirs(output_root, exist_ok=True)
+    file_timestamps = timestamp_data[timestamp_data['File'] == filename]
 
-    for _, row in data.iterrows():
-        base_filename = row['File']
-        input_path = os.path.join(directory, f"{base_filename}.bmp")
-        
-        if not os.path.exists(input_path):
-            print(f"File {input_path} not found. Skipping.")
-            continue
-        
-        try:
-            # Open the image
-            image = Image.open(input_path)
-            width, height = image.size
+    # Process each timestamp range
+    segment_number = 0
+    for _, row in file_timestamps.iterrows():
+        start_time = max(0, row['Start'] - padding)
+        end_time = row['End'] + padding
 
-            # Process each timestamp range
-            for col in row.index[1:]:
-                if pd.notna(row[col]):
-                    try:
-                        # Parse start and end times (assuming timestamps are in percentage of width)
-                        start_percent, end_percent = map(float, row[col].split(':'))
-                        start_x = int(start_percent * width)
-                        end_x = int(end_percent * width)
-                        
-                        # Crop the image segment
-                        image_segment = image.crop((start_x, 0, end_x, height))
-                        
-                        # Save the segment
-                        segment_number = int(start_percent * 100)  # Use percentage as part of the segment number
-                        save_image_segment(image_segment, output_root, base_filename, segment_number)
-                    except ValueError:
-                        print(f"Invalid timestamp format in column {col}: {row[col]}")
-        except Exception as e:
-            print(f"Error processing {input_path}: {e}")
+        # Extract the segment
+        segment = df[(df["Time"] >= start_time) & (df["Time"] <= end_time)]
 
-# Define input and output directories and the CSV file
-input_directory = "../data/bmp_segments"
-output_directory = "../output/bmp_segments"
-csv_file = "../data/timestamps.csv"
+        if not segment.empty:
+            save_segment_to_csv(segment, output_root, filename, segment_number)
+            segment_number += 1
 
-# Process .bmp files
-process_bmp_files(input_directory, output_directory, csv_file)
+
+def process_all_files(input_directory, timestamps_csv, output_directory, padding=0.1):
+    """
+    Process all .data files in a directory based on timestamps from a CSV file.
+    Args:
+        input_directory (str): Path to the directory containing .data files.
+        timestamps_csv (str): Path to the CSV file with filenames and timestamp ranges.
+        output_directory (str): Path to the directory for output CSV files.
+        padding (float): Padding to add to the start and end of each segment in seconds.
+    """
+    # Load the timestamp data
+    timestamp_data = pd.read_csv(timestamps_csv)
+
+    # Ensure required columns exist
+    if not {'File', 'Start', 'End'}.issubset(timestamp_data.columns):
+        print("The CSV file must contain 'File', 'Start', and 'End' columns.")
+        return
+
+    os.makedirs(output_directory, exist_ok=True)
+
+    for filename in os.listdir(input_directory):
+        if filename.endswith(".data"):
+            filepath = os.path.join(input_directory, filename)
+            print(f"Processing {filename}...")
+            process_data_file(filepath, timestamp_data, output_directory, padding)
+
+    print("All files processed.")
+
+# Define input and output directories
+input_dir = "../data/data_segments"  # Directory containing your .data files
+timestamps_csv = "../data/timestamps.csv"  # CSV file with filenames and timestamp ranges
+output_dir = "../output/data_segments"  # Directory for output segments
+
+# Process all .data files
+process_all_files(input_dir, timestamps_csv, output_dir)
