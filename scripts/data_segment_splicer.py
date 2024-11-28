@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 
+
 def save_segment_to_csv(segment, output_folder, filename, segment_number):
     """
     Save a DataFrame segment to a CSV file.
@@ -15,12 +16,12 @@ def save_segment_to_csv(segment, output_folder, filename, segment_number):
     print(f"Segment {segment_number} saved to {output_file}")
 
 
-def process_data_file(filepath, timestamp_data, output_root, padding=0.1):
+def process_data_file(filepath, timestamps, output_root, padding=0.1):
     """
     Process a single .data file, cutting it into segments based on timestamps.
     Args:
         filepath (str): Path to the input .data file.
-        timestamp_data (pd.DataFrame): DataFrame containing start and end timestamps.
+        timestamps (list): List of tuples with start and end times.
         output_root (str): Path to the output directory.
         padding (float): Padding to add to the start and end of each segment in seconds.
     """
@@ -55,18 +56,11 @@ def process_data_file(filepath, timestamp_data, output_root, padding=0.1):
     # Convert data to a DataFrame
     df = pd.DataFrame(data, columns=["Time", "Current"])
 
-    # Filter the timestamps for the current file
-    if filename not in timestamp_data['File'].values:
-        print(f"No timestamps found for {filename}. Skipping.")
-        return
-
-    file_timestamps = timestamp_data[timestamp_data['File'] == filename]
-
     # Process each timestamp range
     segment_number = 0
-    for _, row in file_timestamps.iterrows():
-        start_time = max(0, row['Start'] - padding)
-        end_time = row['End'] + padding
+    for start, end in timestamps:
+        start_time = max(0, start - padding)
+        end_time = end + padding
 
         # Extract the segment
         segment = df[(df["Time"] >= start_time) & (df["Time"] <= end_time)]
@@ -88,20 +82,41 @@ def process_all_files(input_directory, timestamps_csv, output_directory, padding
     # Load the timestamp data
     timestamp_data = pd.read_csv(timestamps_csv)
 
-    # Ensure required columns exist
-    if not {'File', 'Start', 'End'}.issubset(timestamp_data.columns):
-        print("The CSV file must contain 'File', 'Start', and 'End' columns.")
+    # Ensure the first column is 'File'
+    if 'File' not in timestamp_data.columns:
+        print("The CSV file must contain a 'File' column.")
         return
 
     os.makedirs(output_directory, exist_ok=True)
 
+    # Process each .data file in the input directory
     for filename in os.listdir(input_directory):
         if filename.endswith(".data"):
             filepath = os.path.join(input_directory, filename)
             print(f"Processing {filename}...")
-            process_data_file(filepath, timestamp_data, output_directory, padding)
+
+            # Get the corresponding timestamps for this file
+            file_name_no_ext = os.path.splitext(filename)[0]
+            if file_name_no_ext not in timestamp_data['File'].values:
+                print(f"No timestamps found for {file_name_no_ext}. Skipping.")
+                continue
+
+            # Extract timestamps for the current file
+            file_timestamps = timestamp_data[timestamp_data['File'] == file_name_no_ext]
+            timestamp_ranges = []
+            for col in file_timestamps.columns[1:]:
+                for entry in file_timestamps[col].dropna():
+                    try:
+                        start, end = map(float, entry.split(":"))
+                        timestamp_ranges.append((start, end))
+                    except ValueError:
+                        print(f"Invalid timestamp format: {entry}. Skipping.")
+
+            # Process the file with the extracted timestamps
+            process_data_file(filepath, timestamp_ranges, output_directory, padding)
 
     print("All files processed.")
+
 
 # Define input and output directories
 input_dir = "../data/data_segments"  # Directory containing your .data files
