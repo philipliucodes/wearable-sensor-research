@@ -1,17 +1,16 @@
 import os
 import numpy as np
 import pandas as pd
+import librosa
 import matplotlib.pyplot as plt
-from scipy.signal import spectrogram
 from scipy.io.wavfile import write
-
 
 def csv_to_wav(input_csv, output_wav, sample_rate=44100):
     """
     Convert a CSV (Time, Current) file to a WAV file.
     Args:
         input_csv (str): Path to the input CSV file.
-        output_wav (str): Path to save the output WAV file.
+        output_wav (str): Path to save the WAV file.
         sample_rate (int): Sampling rate for the WAV file.
     """
     # Read the CSV file
@@ -31,10 +30,9 @@ def csv_to_wav(input_csv, output_wav, sample_rate=44100):
     write(output_wav, sample_rate, pcm_data)
     print(f"WAV file saved: {output_wav}")
 
-
 def generate_spectrograms(input_csv_dir, wav_output_dir, spectrogram_output_dir, sampling_frequency_override=None):
     """
-    Generate spectrograms from CSV files and save them as images.
+    Generate spectrograms from CSV files and save them as images in subdirectories based on keywords.
     Args:
         input_csv_dir (str): Directory containing input CSV files.
         wav_output_dir (str): Directory to save WAV files.
@@ -51,47 +49,43 @@ def generate_spectrograms(input_csv_dir, wav_output_dir, spectrogram_output_dir,
             # Extract the base name of the CSV file (without extension)
             base_name = os.path.splitext(os.path.basename(csv_file))[0]
 
-            # Load the CSV data
-            data = pd.read_csv(csv_file)
-            if 'Time' not in data.columns or 'Current' not in data.columns:
-                print(f"Invalid columns in {csv_file}. Skipping.")
-                continue
+            # Extract the keyword from the file name (e.g., the first part before the underscore)
+            keyword = base_name.split('_')[0]
 
-            # Extract time and current values
-            time = data['Time'].values
-            current = data['Current'].values
+            # Create a subdirectory for the keyword inside the spectrogram output directory
+            keyword_dir = os.path.join(spectrogram_output_dir, keyword)
+            os.makedirs(keyword_dir, exist_ok=True)
 
-            # Define the sampling frequency based on time intervals
-            if sampling_frequency_override:
-                fs = sampling_frequency_override
-            else:
-                fs = 1 / (time[1] - time[0])  # Assuming uniform sampling
+            # Create the WAV file name
+            wav_output_path = os.path.join(wav_output_dir, f"{base_name}.wav")
 
-            # Compute the spectrogram
-            frequencies, times, Sxx = spectrogram(current, fs)
-
-            # Define intensity limits for the color map
-            intensity_min = -310  # Adjust based on your requirements
-            intensity_max = 10 * np.log10(Sxx.max())  # Maximum intensity in dB
-
-            # Create a unique name for the WAV file
-            wav_output_path = os.path.join(wav_output_dir, f"{base_name}_wav.wav")
+            # Convert CSV to WAV
             csv_to_wav(csv_file, wav_output_path)
 
-            # Plot and save the spectrogram
-            plt.figure(figsize=(10, 6))
-            plt.ylim(0, 8000)  # Limit the y-axis to 8 kHz
-            plt.axis('off')  # Hide axes
-            plt.pcolormesh(times, frequencies, 10 * np.log10(Sxx), shading='gouraud', cmap='inferno',
-                           vmin=intensity_min, vmax=intensity_max)
+            # Load the WAV file for spectrogram generation
+            signal, sr = librosa.load(wav_output_path, sr=None)
 
-            spectrogram_output_path = os.path.join(spectrogram_output_dir, f"{base_name}_spectrogram.png")
+            # Compute the spectrogram
+            S = librosa.stft(signal, n_fft=2048, hop_length=512)
+            Y = np.abs(S) ** 2
+            Y_log_scale = librosa.power_to_db(Y)
+
+            # Plot the spectrogram
+            plt.figure(figsize=(10, 6))
+            plt.axis('off')  # Hide axes
+            plt.pcolormesh(librosa.times_like(S, sr=sr, hop_length=512),
+                           librosa.fft_frequencies(sr=sr, n_fft=2048),
+                           Y_log_scale, shading='gouraud', cmap='inferno')
+
+            # Save the spectrogram as an image in the keyword directory
+            spectrogram_output_path = os.path.join(keyword_dir, f"{base_name}_spectrogram.png")
             plt.savefig(spectrogram_output_path, bbox_inches='tight', pad_inches=0)
             plt.close()
             print(f"Spectrogram saved: {spectrogram_output_path}")
 
         except Exception as e:
             print(f"Error processing {csv_file}: {e}")
+
 
 if __name__ == "__main__":
     # Directories
@@ -103,11 +97,4 @@ if __name__ == "__main__":
     os.makedirs(wav_output_dir, exist_ok=True)
     os.makedirs(spectrogram_output_dir, exist_ok=True)
 
-    # Step 1: Convert CSV files to WAV files
-    csv_files = [os.path.join(input_csv_dir, f) for f in os.listdir(input_csv_dir) if f.endswith(".csv")]
-    for csv_file in csv_files:
-        wav_file = os.path.join(wav_output_dir, os.path.splitext(os.path.basename(csv_file))[0] + ".wav")
-        csv_to_wav(csv_file, wav_file)
-
-    # Step 2: Generate spectrograms from CSV files
     generate_spectrograms(input_csv_dir, wav_output_dir, spectrogram_output_dir)

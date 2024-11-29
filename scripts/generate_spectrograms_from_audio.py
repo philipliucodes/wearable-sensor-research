@@ -45,6 +45,13 @@ def generate_spectrograms(mp3_dir, wav_output_dir, spectrogram_output_dir, frame
             # Convert MP3 to WAV
             mp3_to_wav(mp3_file, wav_file)
 
+            # Extract the keyword (assumes keyword is before the first underscore '_')
+            keyword = base_name.split('_')[0]
+
+            # Create a subdirectory for the keyword in the spectrogram output directory
+            keyword_dir = os.path.join(spectrogram_output_dir, keyword)
+            os.makedirs(keyword_dir, exist_ok=True)
+
             # Load the WAV file for spectrogram generation
             signal, sr = librosa.load(wav_file, sr=None)
 
@@ -60,8 +67,8 @@ def generate_spectrograms(mp3_dir, wav_output_dir, spectrogram_output_dir, frame
                            librosa.fft_frequencies(sr=sr, n_fft=frame_size),
                            Y_log_scale, shading='gouraud', cmap='inferno')
 
-            # Save the spectrogram as an image
-            spectrogram_path = os.path.join(spectrogram_output_dir, f"{base_name}_spectrogram.png")
+            # Save the spectrogram in the keyword-specific subdirectory
+            spectrogram_path = os.path.join(keyword_dir, f"{base_name}_spectrogram.png")
             plt.savefig(spectrogram_path, bbox_inches='tight', pad_inches=0)
             plt.close()
             print(f"Spectrogram saved: {spectrogram_path}")
